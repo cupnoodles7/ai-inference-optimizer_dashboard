@@ -1,0 +1,13 @@
+model:
+  name: "bert-base-uncased"
+  device: "cuda"
+  precision: "FP32"
+
+benchmark:
+  batch_sizes: [1, 8, 32, 64]
+  num_iterations: 100
+  warmup_iterations: 10
+
+output:
+  log_dir: "logs"
+  report_dir: "reports"
