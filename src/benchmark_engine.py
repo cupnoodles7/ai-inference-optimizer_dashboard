@@ -5,8 +5,8 @@ import time
 from pathlib import Path
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from .model_manager import ModelManager
-from .metrics import MetricsTracker
+from model_manager import ModelManager
+from metrics import MetricsTracker
 
 logger = logging.getLogger(__name__)
 

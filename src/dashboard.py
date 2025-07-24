@@ -5,10 +5,159 @@ from pathlib import Path
 import json
 from typing import Dict, List
 import logging
+import sys
+import os
 
-from .model_manager import ModelManager
-from .benchmark_engine import BenchmarkEngine
-from .metrics import MetricsTracker
+# Add the parent directory to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from model_manager import ModelManager
+from benchmark_engine import BenchmarkEngine
+from metrics import MetricsTracker
+
+# Custom CSS with Poppins font and enhanced styling
+st.markdown("""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        html, body, [class*="css"] {
+            font-family: 'Poppins', sans-serif;
+            color: #4A3B43;
+        }
+
+        /* Main Headers */
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            color: #A2678A;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        /* Subheaders */
+        h2 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: #865B73;
+            font-size: 1.8rem;
+            margin-top: 1.5rem;
+            letter-spacing: -0.01em;
+        }
+
+        /* Section headers */
+        h3 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            color: #73515F;
+            font-size: 1.4rem;
+            margin-top: 1.2rem;
+        }
+
+        /* Smaller headers */
+        h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            color: #624551;
+            font-size: 1.1rem;
+        }
+
+        /* Buttons */
+        .stButton > button {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 500;
+            background-color: #A2678A;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(162, 103, 138, 0.2);
+        }
+
+        .stButton > button:hover {
+            background-color: #865B73;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(162, 103, 138, 0.3);
+        }
+
+        /* Input fields */
+        .stSelectbox, .stMultiSelect {
+            background-color: #F4ECF0;
+            border-radius: 0.5rem;
+            border: 1px solid #E4D6DD;
+        }
+
+        /* Text and paragraphs */
+        .stMarkdown {
+            font-family: 'Poppins', sans-serif;
+            color: #4A3B43;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        /* Charts */
+        .stPlotlyChart {
+            font-family: 'Poppins', sans-serif;
+            background-color: #F4ECF0;
+            border-radius: 0.75rem;
+            padding: 1.2rem;
+            box-shadow: 0 4px 6px rgba(162, 103, 138, 0.1);
+            border: 1px solid #E4D6DD;
+        }
+
+        /* Top decoration bar */
+        div[data-testid="stDecoration"] {
+            background-image: linear-gradient(90deg, #A2678A, #865B73);
+            height: 0.3rem !important;
+        }
+
+        /* Toolbar */
+        div[data-testid="stToolbar"] {
+            background-color: #F4ECF0;
+        }
+
+        /* Alerts and info boxes */
+        .stAlert {
+            background-color: #F4ECF0;
+            border: 2px solid #A2678A;
+            border-radius: 0.5rem;
+            color: #4A3B43;
+        }
+
+        /* Sidebar */
+        .css-1d391kg {
+            background-color: #E4D6DD;
+        }
+
+        /* Widgets */
+        .stNumberInput, .stTextInput {
+            background-color: #F4ECF0;
+            border: 1px solid #E4D6DD;
+            border-radius: 0.5rem;
+            color: #4A3B43;
+        }
+
+        /* Progress bars */
+        .stProgress > div > div > div {
+            background-color: #A2678A;
+        }
+
+        /* Tables */
+        .stTable {
+            background-color: #F4ECF0;
+            border-radius: 0.5rem;
+            border: 1px solid #E4D6DD;
+        }
+
+        /* Code blocks */
+        .stCodeBlock {
+            background-color: #E4D6DD;
+            border-radius: 0.5rem;
+            border: 1px solid #D6C3CC;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 logger = logging.getLogger(__name__)
 
@@ -16,81 +165,8 @@ class Dashboard:
     """Streamlit dashboard for model benchmarking visualization."""
     
     def __init__(self):
-        # Configure page and theme
         st.set_page_config(page_title="AI Model Inference Optimizer", layout="wide")
         
-        # Custom theme configuration
-        st.markdown("""
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-                
-                html, body, [class*="css"] {
-                    font-family: 'Poppins', sans-serif;
-                }
-                
-                .stButton > button {
-                    background-color: #A2678A;
-                    color: white;
-                    border-radius: 4px;
-                    border: none;
-                    padding: 0.5rem 1rem;
-                    font-family: 'Poppins', sans-serif;
-                }
-                
-                .stButton > button:hover {
-                    background-color: #915c7c;
-                }
-                
-                .streamlit-expanderHeader {
-                    font-family: 'Poppins', sans-serif;
-                    font-weight: 500;
-                }
-                
-                .css-1d391kg, .css-12oz5g7 {
-                    background-color: #F9F6F0;
-                }
-                
-                .css-1n76uvr {
-                    background-color: #E8E6E1;
-                }
-                
-                .css-10trblm, .css-1q8dd3e {
-                    color: #3E3E3E;
-                    font-family: 'Poppins', sans-serif;
-                    font-weight: 600;
-                }
-                
-                .css-1kqn0eb {
-                    color: #3E3E3E;
-                    font-family: 'Poppins', sans-serif;
-                }
-                
-                /* Sidebar styling */
-                .css-1v0mbdj {
-                    background-color: #E8E6E1;
-                    border-right: 1px solid rgba(38, 39, 48, 0.1);
-                }
-                
-                /* Metric containers */
-                [data-testid="stMetricValue"] {
-                    font-family: 'Poppins', sans-serif;
-                    font-weight: 600;
-                    color: #A2678A;
-                }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        # Configure theme
-        st.markdown("""
-            <style>
-                :root {
-                    --primary-color: #A2678A;
-                    --background-color: #F9F6F0;
-                    --secondary-background-color: #E8E6E1;
-                    --text-color: #3E3E3E;
-                }
-            </style>
-        """, unsafe_allow_html=True)
     def run(self):
         """Run the dashboard application."""
         st.title("AI Model Inference Optimizer Dashboard")
